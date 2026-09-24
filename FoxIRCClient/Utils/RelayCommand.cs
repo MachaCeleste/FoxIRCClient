@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace FoxIRCClient;
+namespace FoxIRCClient.Utils;
 
 public class RelayCommand : ICommand
 {

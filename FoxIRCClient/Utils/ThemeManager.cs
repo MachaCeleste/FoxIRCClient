@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace FoxIRCClient;
+namespace FoxIRCClient.Utils;
 
 public static class ThemeManager
 {

@@ -1,4 +1,5 @@
 ﻿using FoxIrc;
+using FoxIRCClient.Utils;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -85,7 +86,7 @@ public class ServerViewModel : ViewModelBase
     }
 
     public void CloseChannel(ChannelViewModel channel)
-    { // TODO this is still reopening the tab to say i left the channel, then crashes scroll to bottom when reclosing the tab
+    {
         if (channel == null || channel.ChannelId.Equals("System", StringComparison.OrdinalIgnoreCase))
             return;
 

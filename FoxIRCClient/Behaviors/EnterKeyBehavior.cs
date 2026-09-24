@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace FoxIRCClient;
+namespace FoxIRCClient.Behaviors;
 
 public static class EnterKeyBehavior
 {

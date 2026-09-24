@@ -1,7 +1,7 @@
 ﻿using FoxIRCClient.ViewModels;
 using System.Windows;
 
-namespace FoxIRCClient;
+namespace FoxIRCClient.Utils;
 
 public static class RawMessageReceivedHandler
 {

@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace FoxIRCClient;
+namespace FoxIRCClient.Behaviors;
 
 public static class AutoScrollBehavior // TODO system not remembering position on tabs that arent focused
 {

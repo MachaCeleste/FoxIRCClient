@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FoxIRCClient"
         xmlns:vm="clr-namespace:FoxIRCClient.ViewModels"
+        xmlns:behaviors="clr-namespace:FoxIRCClient.Behaviors"
         mc:Ignorable="d"
         Title="Fox IRC Client"
         Height="450" Width="800"
@@ -17,139 +18,12 @@
 
         <CollectionViewSource x:Key="ServersViewSource" Source="{Binding Servers}"/>
 
-        <DataTemplate x:Key="ChannelContentTemplate">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="25"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="200"/>
-                </Grid.ColumnDefinitions>
-
-                <GroupBox Header="Chat" Grid.Row="0" Grid.Column="0"
-                          Foreground="{DynamicResource TextPrimaryBrush}"
-                          BorderBrush="{DynamicResource AccentBrush}">
-                    <ListView ItemsSource="{Binding Messages}"
-                              Background="{DynamicResource BgPrimaryBrush}"
-                              Foreground="{DynamicResource TextPrimaryBrush}"
-                              BorderThickness="0"
-                              HorizontalContentAlignment="Stretch"
-                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                              local:AutoScrollBehavior.AutoScroll="True">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Vertical" Margin="1">
-                                    <StackPanel Orientation="Horizontal" Margin="1">
-                                        <TextBlock Text="{Binding TimeStamp, StringFormat='[{0:HH:mm}]'}"
-                                                   Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,5,0"/>
-                                        <TextBlock Text="{Binding Author, StringFormat='&lt;{0}&gt;'}"
-                                                   FontWeight="Bold"
-                                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                    </StackPanel>
-                                    <TextBlock Text="{Binding Content}"
-                                               Foreground="{DynamicResource TextPrimaryBrush}"
-                                               TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </GroupBox>
-
-                <GroupBox Header="Users" Grid.RowSpan="2" Grid.Column="1"
-                          Foreground="{DynamicResource TextPrimaryBrush}"
-                          BorderBrush="{DynamicResource AccentBrush}">
-                    <ListView ItemsSource="{Binding Users}"
-                              Background="{DynamicResource BgPrimaryBrush}"
-                              Foreground="{DynamicResource TextPrimaryBrush}">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Nick}" Foreground="{DynamicResource AccentBrush}"/>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </GroupBox>
-
-                <Grid Grid.Row="1" Grid.Column="0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBox Grid.Column="0" Margin="0,0,3,0"
-                             Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
-                             Background="{DynamicResource BgSecondaryBrush}"
-                             Foreground="{DynamicResource TextPrimaryBrush}"
-                             CaretBrush="{DynamicResource AccentBrush}"
-                             BorderBrush="{DynamicResource AccentBrush}"
-                             AcceptsReturn="True"
-                             local:EnterKeyBehavior.ExecuteCommandOnEnter="{Binding SendMessageCommand}"/>
-
-                    <Button Content="Send" Grid.Column="1" Width="80"
-                            Command="{Binding SendMessageCommand}"
-                            Background="{DynamicResource BgSecondaryBrush}"
-                            Foreground="{DynamicResource TextPrimaryBrush}"
-                            BorderBrush="{DynamicResource AccentBrush}"/>
-                </Grid>
-            </Grid>
-        </DataTemplate>
-
-        <DataTemplate x:Key="ChannelHeaderTemplate">
-            <StackPanel Orientation="Horizontal"
-                        Background="{DynamicResource BgSecondaryBrush}">
-                <TextBlock Text="{Binding ChannelId}"
-                           ToolTip="{Binding ChannelId}"
-                           Foreground="{DynamicResource TextPrimaryBrush}"
-                           Padding="2" MaxWidth="100"
-                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                           Margin="0,0,5,0"/>
-
-                <Button Padding="0" Height="15" Width="15"
-                        FontWeight="Bold" FontSize="9" Content="✕"
-                        Background="Transparent"
-                        Foreground="{DynamicResource TextMutedBrush}"
-                        BorderThickness="0"
-                        Command="{Binding DataContext.CloseChannelCommand,
-                                  RelativeSource={RelativeSource AncestorType=TabControl}}"
-                        CommandParameter="{Binding}"/>
-            </StackPanel>
-        </DataTemplate>
-
-        <DataTemplate x:Key="ServerContentTemplate">
-            <TabControl ItemsSource="{Binding Channels}"
-                        Background="{DynamicResource BgPrimaryBrush}"
-                        ItemTemplate="{StaticResource ChannelHeaderTemplate}"
-                        ContentTemplate="{StaticResource ChannelContentTemplate}"/>
-        </DataTemplate>
-
-        <DataTemplate x:Key="ServerHeaderTemplate">
-            <StackPanel Orientation="Horizontal"
-                        Background="{DynamicResource BgSecondaryBrush}">
-                <TextBlock Text="{Binding ServerAddress}"
-                           ToolTip="{Binding ServerAddress}"
-                           Foreground="{DynamicResource TextPrimaryBrush}"
-                           Padding="2" MaxWidth="100"
-                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                           Margin="0,0,5,0"/>
-
-                <Button Padding="0" Height="15" Width="15"
-                        FontSize="10" Content="✕"
-                        Background="Transparent"
-                        Foreground="{DynamicResource TextMutedBrush}"
-                        BorderThickness="0"
-                        Command="{Binding DataContext.CloseServerCommand,
-                                  RelativeSource={RelativeSource AncestorType=TabControl}}"
-                        CommandParameter="{Binding}"/>
-            </StackPanel>
-        </DataTemplate>
-
-        <Style x:Key="CustomButton" TargetType="Button">
+        <Style TargetType="Button">
             <Setter Property="Background" Value="{DynamicResource BgSecondaryBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="12.6"/>
+            <Setter Property="Padding" Value="5"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -242,15 +116,202 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style TargetType="TabItem">
+            <Setter Property="Background" Value="{DynamicResource BgSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="0,0,2,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="TabBorder"
+                        Background="{TemplateBinding Background}"
+                        BorderThickness="0"
+                        CornerRadius="3,3,0,0"
+                        Padding="{TemplateBinding Padding}"
+                        Margin="{TemplateBinding Margin}">
+                            <ContentPresenter x:Name="ContentSite"
+                                      VerticalAlignment="Center"
+                                      HorizontalAlignment="Center"
+                                      ContentSource="Header"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate x:Key="ChannelHeaderTemplate">
+            <StackPanel Orientation="Horizontal"
+                        Background="Transparent">
+                <TextBlock Text="{Binding ChannelId}"
+                           ToolTip="{Binding ChannelId}"
+                           Padding="2" MaxWidth="100"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                           Margin="0,0,5,0"/>
+
+                <Button Padding="0" Height="15" Width="15"
+                        FontWeight="Bold" FontSize="9" Content="✕"
+                        Background="Transparent"
+                        Foreground="{DynamicResource TextMutedBrush}"
+                        BorderThickness="0"
+                        Command="{Binding DataContext.CloseChannelCommand,
+                                  RelativeSource={RelativeSource AncestorType=TabControl}}"
+                        CommandParameter="{Binding}"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ChannelContentTemplate">
+            <Grid Background="{DynamicResource BgPrimaryBrush}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="25"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="200"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Chat Group -->
+                <GroupBox Header="Chat" Grid.Row="0" Grid.Column="0"
+                          Foreground="{DynamicResource TextPrimaryBrush}"
+                          BorderBrush="{DynamicResource AccentBrush}"
+                          Margin="0,0,1,5">
+                    <ListView ItemsSource="{Binding Messages}"
+                              Background="{DynamicResource BgPrimaryBrush}"
+                              Foreground="{DynamicResource TextPrimaryBrush}"
+                              BorderThickness="0"
+                              HorizontalContentAlignment="Stretch"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              behaviors:AutoScrollBehavior.AutoScroll="True">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="5" Padding="3"
+                                        Background="{DynamicResource BgSecondaryBrush}">
+                                    <StackPanel Orientation="Vertical" Margin="1">
+                                        <StackPanel Orientation="Horizontal" Margin="1">
+                                            <TextBlock Text="{Binding Timestamp, StringFormat='[{0:HH:mm}]'}"
+                                                       Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,5,0"/>
+
+                                            <!-- TODO Make context menu for chat messages for copy to clipboard -->
+
+                                            <Border CornerRadius="5"
+                                                    Background="{DynamicResource AccentBrush}">
+                                                <TextBlock Text="{Binding Author, StringFormat='&lt;{0}&gt;'}"
+                                                       FontWeight="Bold" Margin="2,0,2,0"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            </Border>
+                                        </StackPanel>
+
+                                        <TextBlock Text="{Binding Content}"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </GroupBox>
+
+                <!-- User Group -->
+                <GroupBox Header="Users" Grid.RowSpan="2" Grid.Column="1"
+                          Foreground="{DynamicResource TextPrimaryBrush}"
+                          BorderBrush="{DynamicResource AccentBrush}"
+                          Margin="1,0,0,0">
+                    <ListView ItemsSource="{Binding Users}"
+                              Background="{DynamicResource BgPrimaryBrush}"
+                              Foreground="{DynamicResource TextPrimaryBrush}"
+                              BorderThickness="0">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Nick}" Foreground="{DynamicResource AccentBrush}"/>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </GroupBox>
+
+                <!-- Input Group -->
+                <Grid Grid.Row="1" Grid.Column="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0" Margin="0,0,3,0"
+                             VerticalContentAlignment="Center"
+                             Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
+                             Background="{DynamicResource BgSecondaryBrush}"
+                             Foreground="{DynamicResource TextPrimaryBrush}"
+                             CaretBrush="{DynamicResource AccentBrush}"
+                             BorderBrush="{DynamicResource AccentBrush}"
+                             behaviors:DefaultFocusBehavior.IsFocused="True"
+                             AcceptsReturn="True"
+                             behaviors:EnterKeyBehavior.ExecuteCommandOnEnter="{Binding SendMessageCommand}"/>
+
+                    <Button Content="Send" Grid.Column="1" Width="80"
+                            Command="{Binding SendMessageCommand}"
+                            Background="{DynamicResource BgSecondaryBrush}"
+                            Foreground="{DynamicResource TextPrimaryBrush}"
+                            BorderBrush="{DynamicResource AccentBrush}"/>
+                </Grid>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ServerHeaderTemplate">
+            <StackPanel Orientation="Horizontal"
+                        Background="Transparent">
+                <TextBlock Text="{Binding ServerAddress}"
+                           ToolTip="{Binding ServerAddress}"
+                           Padding="2" MaxWidth="100"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                           Margin="0,0,5,0"/>
+
+                <Button Padding="0" Height="15" Width="15"
+                        FontSize="10" Content="✕"
+                        Background="Transparent"
+                        Foreground="{DynamicResource TextMutedBrush}"
+                        BorderThickness="0"
+                        Command="{Binding DataContext.CloseServerCommand,
+                                  RelativeSource={RelativeSource AncestorType=TabControl}}"
+                        CommandParameter="{Binding}"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ServerContentTemplate">
+            <TabControl ItemsSource="{Binding Channels}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Padding="0"
+                        behaviors:AutoSelectTabBehavior.EnableAutoSelect="True"
+                        ItemTemplate="{StaticResource ChannelHeaderTemplate}"
+                        ContentTemplate="{StaticResource ChannelContentTemplate}"/>
+        </DataTemplate>
     </Window.Resources>
     
+    <!-- Main View -->
     <Grid Background="{DynamicResource BgPrimaryBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="20"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- Menu Bar -->
         <Menu Grid.Row="0"
+              VerticalAlignment="Center"
               Background="{DynamicResource BgSecondaryBrush}"
               Foreground="{DynamicResource TextPrimaryBrush}">
 
@@ -284,12 +345,16 @@
             </MenuItem>
         </Menu>
 
+        <!-- Server Tab Control -->
         <TabControl Grid.Row="1"
                     ItemsSource="{Binding Servers}"
-                    Background="{DynamicResource BgPrimaryBrush}"
+                    Background="{DynamicResource BgSecondaryBrush}"
+                    BorderThickness="0"
+                    Padding="0"
                     ItemTemplate="{StaticResource ServerHeaderTemplate}"
                     ContentTemplate="{StaticResource ServerContentTemplate}"/>
 
+        <!-- Add Server Panel -->
         <Grid Grid.Row="0" Grid.RowSpan="2"
               Background="#B0000000"
               Visibility="{Binding IsAddingServerOpen, Converter={StaticResource BoolToVis}}">
@@ -304,7 +369,8 @@
                     <TextBlock Text="Server Address:" Foreground="{DynamicResource TextMutedBrush}" Margin="0,2,0,0"/>
                     <TextBox Text="{Binding NewServerAddress, UpdateSourceTrigger=PropertyChanged}"
                              Background="{DynamicResource BgPrimaryBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
-                             CaretBrush="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource AccentBrush}" Margin="0,0,0,8"/>
+                             CaretBrush="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource AccentBrush}"
+                             behaviors:DefaultFocusBehavior.IsFocused="{Binding IsAddingServerOpen}" Margin="0,0,0,8"/>
 
                     <TextBlock Text="Port:" Foreground="{DynamicResource TextMutedBrush}" Margin="0,2,0,0"/>
                     <TextBox Text="{Binding NewPort, UpdateSourceTrigger=PropertyChanged}"
@@ -334,17 +400,16 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
                         <Button Content="Cancel"
                                 Command="{Binding CancelAddServerCommand}"
-                                Style="{StaticResource CustomButton}"
                                 Margin="0,0,0,8"
                                 MinWidth="80"/>
 
                         <Button Content="Add Server"
                                 Command="{Binding ConfirmAddServerCommand}"
-                                Style="{StaticResource CustomButton}"
                                 Background="{DynamicResource AccentBrush}"
                                 Foreground="{DynamicResource BgPrimaryBrush}"
                                 IsDefault="True"
-                                MinWidth="90"/>
+                                Margin="3,0,0,8"
+                                MinWidth="80"/>
                     </StackPanel>
                 </StackPanel>
             </Border>

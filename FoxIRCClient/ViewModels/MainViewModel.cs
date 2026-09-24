@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using FoxIRCClient.Utils;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 
@@ -95,7 +96,7 @@ public class MainViewModel : ViewModelBase
         int.TryParse(NewPort, out int port);
         if (port <= 1023) port = 6667;
 
-        var server = new ServerViewModel(NewServerAddress.Trim(), NewNick.Trim(), NewUser.Trim(), NewReal.Trim(), NewPass, port);
+        var server = new ServerViewModel(NewServerAddress!.Trim(), NewNick!.Trim(), NewUser.Trim(), NewReal.Trim(), NewPass, port);
 
         Servers.Add(server);
         ResetForm();

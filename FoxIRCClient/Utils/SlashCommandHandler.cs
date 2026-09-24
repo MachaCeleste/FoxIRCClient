@@ -1,7 +1,7 @@
 ﻿using FoxIrc;
 using FoxIRCClient.ViewModels;
 
-namespace FoxIRCClient;
+namespace FoxIRCClient.Utils;
 
 public static class SlashCommandHandler
 {

@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using FoxIRCClient.Utils;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 
