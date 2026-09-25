@@ -97,7 +97,7 @@ public class ChannelViewModel : ViewModelBase
     public void AddMessage(string author, string message)
     {
         Application.Current.Dispatcher.Invoke(() => Messages.Add(new ChatMessageViewModel(DateTime.Now, author, message)));
-        if (!IsSelected)
+        if (ChannelId != "System" && !IsSelected)
             HasUnread = true;
     }
     public void ClearMessages() =>

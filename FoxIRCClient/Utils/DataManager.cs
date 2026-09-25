@@ -8,12 +8,12 @@ namespace FoxIRCClient.Utils;
 
 public class DataManager
 {
+    public static string CurrentTheme = "Cynical";
+
     public static void SaveServerConfigs(List<ServerViewModel> servers)
     {
         string filePath = GetFilePath();
-
-        if (!Directory.Exists(filePath))
-            Directory.CreateDirectory(filePath);
+        SetupConfigDir(filePath);
 
         List<ServerConfig> configs = [];
         foreach (ServerViewModel server in servers)
@@ -62,10 +62,37 @@ public class DataManager
         return servers;
     }
 
-    private static string GetFilePath()
+    public static void SaveThemeConfig()
+    {
+        string filePath = GetFilePath();
+        SetupConfigDir(filePath);
+
+        File.WriteAllText(Path.Combine(filePath, "LastTheme.txt"), CurrentTheme);
+    }
+
+    public static void LoadThemeConfig()
+    {
+        string filePath = GetFilePath();
+        SetupConfigDir(filePath);
+
+        string file = Path.Combine(filePath, "LastTheme.txt");
+        if (!File.Exists(file)) return;
+
+        CurrentTheme = File.ReadAllText(file);
+
+        ThemeManager.ApplyTheme(CurrentTheme);
+    }
+
+    public static string GetFilePath()
     {
         FileVersionInfo fileInfo = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
         return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), fileInfo.CompanyName, fileInfo.ProductName);
+    }
+
+    private static void SetupConfigDir(string filePath)
+    {
+        if (!Directory.Exists(filePath))
+            Directory.CreateDirectory(filePath);
     }
 }
 

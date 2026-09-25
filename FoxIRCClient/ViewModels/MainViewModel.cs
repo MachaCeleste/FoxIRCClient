@@ -7,6 +7,7 @@ namespace FoxIRCClient.ViewModels;
 
 public class MainViewModel : ViewModelBase
 {
+    #region Fields
     public ObservableCollection<ServerViewModel> Servers { get; } = [];
 
     private bool _isAddingServerOpen;
@@ -14,20 +15,6 @@ public class MainViewModel : ViewModelBase
     {
         get => _isAddingServerOpen;
         set => SetProperty(ref _isAddingServerOpen, value);
-    }
-
-    private bool _isConfirmDeleteOpen;
-    public bool IsConfirmDeleteOpen
-    {
-        get => _isConfirmDeleteOpen;
-        set => SetProperty(ref _isConfirmDeleteOpen, value);
-    }
-
-    private ServerViewModel? _serverToDelete;
-    public ServerViewModel? ServerToDelete
-    {
-        get => _serverToDelete;
-        set => SetProperty(ref _serverToDelete, value);
     }
 
     private string? _newServerAddress;
@@ -73,15 +60,41 @@ public class MainViewModel : ViewModelBase
     }
 
 
+    private bool _isConfirmDeleteOpen;
+    public bool IsConfirmDeleteOpen
+    {
+        get => _isConfirmDeleteOpen;
+        set => SetProperty(ref _isConfirmDeleteOpen, value);
+    }
+
+    private ServerViewModel? _serverToDelete;
+    public ServerViewModel? ServerToDelete
+    {
+        get => _serverToDelete;
+        set => SetProperty(ref _serverToDelete, value);
+    }
+
+    public ObservableCollection<string> CustomThemes => ThemeManager.CustomThemes;
+
+    public bool HasThemes => CustomThemes.Count > 0;
+    #endregion
+
+    #region Commands
+    public ICommand ConnectAllCommand { get; }
+    public ICommand CloseApplicationCommand { get; }
+
     public ICommand OpenAddServerPanelCommand { get; }
+    public ICommand ConfirmAddServerCommand { get; }
+    public ICommand CancelAddServerCommand { get; }
+
     public ICommand PromptDeleteServerCommand { get; }
     public ICommand ConfirmDeleteServerCommand { get; }
     public ICommand CancelDeleteServerCommand { get; }
-    public ICommand ConfirmAddServerCommand { get; }
-    public ICommand CancelAddServerCommand { get; }
-    public ICommand ConnectAllCommand { get; }
-    public ICommand CloseApplicationCommand { get; }
+
+    public ICommand OpenThemesFolderCommand { get; }
     public ICommand ChangeThemeCommand { get; }
+    public ICommand ReloadCustomThemesCommand { get; }
+    #endregion
 
     public MainViewModel()
     {
@@ -95,23 +108,38 @@ public class MainViewModel : ViewModelBase
                 IsAddingServerOpen = false;
         }
 
+        DataManager.LoadThemeConfig();
+
+        ConnectAllCommand = new RelayCommand(async () => await ExecuteConnectAllAsync());
+        CloseApplicationCommand = new RelayCommand(() => Application.Current.Shutdown());
+
         OpenAddServerPanelCommand = new RelayCommand(() => IsAddingServerOpen = true);
         CancelAddServerCommand = new RelayCommand(() => IsAddingServerOpen = false, () => Servers.Count > 0);
         ConfirmAddServerCommand = new RelayCommand(ExecuteAddServer, CanAddServer);
 
-        ConnectAllCommand = new RelayCommand(async () => await ExecuteConnectAllAsync());
         PromptDeleteServerCommand = new RelayCommand(OnCloseServer);
         ConfirmDeleteServerCommand = new RelayCommand(ConfirmDeleteServer);
         CancelDeleteServerCommand = new RelayCommand(CancelDeleteServer);
-        CloseApplicationCommand = new RelayCommand(() => Application.Current.Shutdown());
 
+        ThemeManager.ReloadCustomThemes();
+        OpenThemesFolderCommand = new RelayCommand(() => ThemeManager.OpenThemesFolder());
+        CustomThemes.CollectionChanged += (s, e) => OnPropertyChanged(nameof(HasThemes));
+        ReloadCustomThemesCommand = new RelayCommand(() => ThemeManager.ReloadCustomThemes());
         ChangeThemeCommand = new RelayCommand((param) =>
         {
-            if (param is string themeName)
-                ThemeManager.ChangeTheme(themeName);
+            if (param is string themeName && !string.IsNullOrEmpty(themeName))
+                ThemeManager.ApplyTheme(themeName);
         });
     }
 
+    private async Task ExecuteConnectAllAsync()
+    {
+        foreach (var server in Servers)
+            if (server.ConnectCommand.CanExecute(null))
+                server.ConnectCommand.Execute(null);
+    }
+
+    #region Add Server
     private bool CanAddServer() =>
         !string.IsNullOrWhiteSpace(NewServerAddress) && !string.IsNullOrWhiteSpace(NewNick);
 
@@ -139,14 +167,9 @@ public class MainViewModel : ViewModelBase
         NewReal = "FoxIrcReal";
         NewPass = null;
     }
+    #endregion
 
-    private async Task ExecuteConnectAllAsync()
-    {
-        foreach (var server in Servers)
-            if (server.ConnectCommand.CanExecute(null))
-                server.ConnectCommand.Execute(null);
-    }
-
+    #region Delete Server
     private async void OnCloseServer(object parameter)
     {
         if (parameter is ServerViewModel server)
@@ -174,4 +197,5 @@ public class MainViewModel : ViewModelBase
         ServerToDelete = null;
         IsConfirmDeleteOpen= false;
     }
+    #endregion
 }

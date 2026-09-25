@@ -19,6 +19,8 @@
 
         <CollectionViewSource x:Key="ServersViewSource" Source="{Binding Servers}"/>
 
+        <CollectionViewSource x:Key="CustomThemesSource" Source="{Binding CustomThemes}"/>
+
         <Style TargetType="Button">
             <Setter Property="Background" Value="{DynamicResource BgSecondaryBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
@@ -328,7 +330,6 @@
 
             <MenuItem Header="File">
                 <MenuItem Header="Add Server" Command="{Binding OpenAddServerPanelCommand}"/>
-
                 <Separator/>
 
                 <MenuItem Header="Connect All" Command="{Binding ConnectAllCommand}"/>
@@ -352,9 +353,29 @@
             </MenuItem>
 
             <MenuItem Header="Theme">
+                <Label Content="Built In" Foreground="{DynamicResource TextMutedBrush}"/>
+                <Separator/>
+
                 <MenuItem Header="Cynical (Default)" Command="{Binding ChangeThemeCommand}" CommandParameter="Cynical"/>
                 <MenuItem Header="Night City" Command="{Binding ChangeThemeCommand}" CommandParameter="NightCity"/>
                 <MenuItem Header="CRT Green" Command="{Binding ChangeThemeCommand}" CommandParameter="CRTGreen"/>
+
+                <Label Content="Custom" Foreground="{DynamicResource TextMutedBrush}"/>
+                <Separator/>
+
+                <MenuItem Header="Open Themes Folder" Command="{Binding OpenThemesFolderCommand}"/>
+                <MenuItem Header="Reload Custom Themes" Command="{Binding ReloadCustomThemesCommand}"/>
+
+                <MenuItem Header="Custom Themes" ItemsSource="{Binding CustomThemes}"
+                          Visibility="{Binding HasThemes, Converter={StaticResource BoolToVis}}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding}"/>
+                            <Setter Property="Command" Value="{Binding DataContext.ChangeThemeCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                            <Setter Property="CommandParameter" Value="{Binding}"/>
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
             </MenuItem>
         </Menu>
 
