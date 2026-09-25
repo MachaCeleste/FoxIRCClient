@@ -16,6 +16,20 @@ public class MainViewModel : ViewModelBase
         set => SetProperty(ref _isAddingServerOpen, value);
     }
 
+    private bool _isConfirmDeleteOpen;
+    public bool IsConfirmDeleteOpen
+    {
+        get => _isConfirmDeleteOpen;
+        set => SetProperty(ref _isConfirmDeleteOpen, value);
+    }
+
+    private ServerViewModel? _serverToDelete;
+    public ServerViewModel? ServerToDelete
+    {
+        get => _serverToDelete;
+        set => SetProperty(ref _serverToDelete, value);
+    }
+
     private string? _newServerAddress;
     public string? NewServerAddress
     {
@@ -60,10 +74,12 @@ public class MainViewModel : ViewModelBase
 
 
     public ICommand OpenAddServerPanelCommand { get; }
+    public ICommand PromptDeleteServerCommand { get; }
+    public ICommand ConfirmDeleteServerCommand { get; }
+    public ICommand CancelDeleteServerCommand { get; }
     public ICommand ConfirmAddServerCommand { get; }
     public ICommand CancelAddServerCommand { get; }
     public ICommand ConnectAllCommand { get; }
-    public ICommand CloseServerCommand { get; }
     public ICommand CloseApplicationCommand { get; }
     public ICommand ChangeThemeCommand { get; }
 
@@ -71,12 +87,22 @@ public class MainViewModel : ViewModelBase
     {
         IsAddingServerOpen = true;
 
+        List<ServerViewModel>? loadServers = DataManager.LoadServerConfigs();
+        if (loadServers != null)
+        {
+            Servers = [..loadServers];
+            if (Servers.Count > 0)
+                IsAddingServerOpen = false;
+        }
+
         OpenAddServerPanelCommand = new RelayCommand(() => IsAddingServerOpen = true);
         CancelAddServerCommand = new RelayCommand(() => IsAddingServerOpen = false, () => Servers.Count > 0);
         ConfirmAddServerCommand = new RelayCommand(ExecuteAddServer, CanAddServer);
 
         ConnectAllCommand = new RelayCommand(async () => await ExecuteConnectAllAsync());
-        CloseServerCommand = new RelayCommand(OnCloseServer);
+        PromptDeleteServerCommand = new RelayCommand(OnCloseServer);
+        ConfirmDeleteServerCommand = new RelayCommand(ConfirmDeleteServer);
+        CancelDeleteServerCommand = new RelayCommand(CancelDeleteServer);
         CloseApplicationCommand = new RelayCommand(() => Application.Current.Shutdown());
 
         ChangeThemeCommand = new RelayCommand((param) =>
@@ -99,6 +125,7 @@ public class MainViewModel : ViewModelBase
         var server = new ServerViewModel(NewServerAddress!.Trim(), NewNick!.Trim(), NewUser.Trim(), NewReal.Trim(), NewPass, port);
 
         Servers.Add(server);
+        DataManager.SaveServerConfigs([..Servers]);
         ResetForm();
         IsAddingServerOpen = false;
     }
@@ -124,11 +151,27 @@ public class MainViewModel : ViewModelBase
     {
         if (parameter is ServerViewModel server)
         {
-            await server.DisconnectNetworkAsync();
-            Application.Current.Dispatcher.Invoke(() => Servers.Remove(server));
-
-            if (Servers.Count == 0)
-                IsAddingServerOpen = true;
+            if (server == null) return;
+            ServerToDelete = server;
+            IsConfirmDeleteOpen = true;
         }
+    }
+
+    private async void ConfirmDeleteServer()
+    {
+        if (ServerToDelete != null)
+        {
+            await ServerToDelete.DisconnectNetworkAsync();
+            Application.Current.Dispatcher.Invoke(() => Servers.Remove(ServerToDelete));
+            DataManager.SaveServerConfigs([.. Servers]);
+            ServerToDelete = null;
+        }
+        IsConfirmDeleteOpen = false;
+    }
+
+    private void CancelDeleteServer()
+    {
+        ServerToDelete = null;
+        IsConfirmDeleteOpen= false;
     }
 }

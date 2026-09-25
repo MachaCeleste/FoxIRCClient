@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:FoxIRCClient"
         xmlns:vm="clr-namespace:FoxIRCClient.ViewModels"
         xmlns:behaviors="clr-namespace:FoxIRCClient.Behaviors"
+        xmlns:utils="clr-namespace:FoxIRCClient.Utils"
         mc:Ignorable="d"
         Title="Fox IRC Client"
         Height="450" Width="800"
@@ -109,9 +110,9 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Separator">
                         <Border Height="1" 
-                        Background="{DynamicResource AccentBrush}" 
-                        Opacity="0.3" 
-                        Margin="4,2"/>
+                                Background="{DynamicResource AccentBrush}" 
+                                Opacity="0.3" 
+                                Margin="4,2"/>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -156,13 +157,17 @@
         </Style>
 
         <DataTemplate x:Key="ChannelHeaderTemplate">
-            <StackPanel Orientation="Horizontal"
-                        Background="Transparent">
+            <StackPanel Orientation="Horizontal" Background="Transparent">
                 <TextBlock Text="{Binding ChannelId}"
                            ToolTip="{Binding ChannelId}"
                            Padding="2" MaxWidth="100"
                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                            Margin="0,0,5,0"/>
+
+                <Ellipse x:Name="NewMessageLight"
+                         Width="10" Height="10" Fill="{DynamicResource TextPrimaryBrush}"
+                         Margin="0,0,3,0" VerticalAlignment="Center"
+                         Visibility="{Binding HasUnread, Converter={StaticResource BoolToVis}}"/>
 
                 <Button Padding="0" Height="15" Width="15"
                         FontWeight="Bold" FontSize="9" Content="✕"
@@ -280,12 +285,17 @@
                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                            Margin="0,0,5,0"/>
 
+                <Ellipse x:Name="NewMessageLight"
+                         Width="10" Height="10" Fill="{DynamicResource TextPrimaryBrush}"
+                         Margin="0,0,3,0" VerticalAlignment="Center"
+                         Visibility="{Binding HasUnread, Converter={StaticResource BoolToVis}}"/>
+
                 <Button Padding="0" Height="15" Width="15"
                         FontSize="10" Content="✕"
                         Background="Transparent"
                         Foreground="{DynamicResource TextMutedBrush}"
                         BorderThickness="0"
-                        Command="{Binding DataContext.CloseServerCommand,
+                        Command="{Binding DataContext.PromptDeleteServerCommand,
                                   RelativeSource={RelativeSource AncestorType=TabControl}}"
                         CommandParameter="{Binding}"/>
             </StackPanel>
@@ -293,10 +303,11 @@
 
         <DataTemplate x:Key="ServerContentTemplate">
             <TabControl ItemsSource="{Binding Channels}"
+                        SelectedItem="{Binding SelectedChannel, Mode=TwoWay}"
                         Background="Transparent"
                         BorderThickness="0"
                         Padding="0"
-                        behaviors:AutoSelectTabBehavior.EnableAutoSelect="True"
+                        behaviors:SelectNewTabBehavior.EnableAutoSelect="True"
                         ItemTemplate="{StaticResource ChannelHeaderTemplate}"
                         ContentTemplate="{StaticResource ChannelContentTemplate}"/>
         </DataTemplate>
@@ -318,11 +329,13 @@
             <MenuItem Header="File">
                 <MenuItem Header="Add Server" Command="{Binding OpenAddServerPanelCommand}"/>
 
+                <Separator/>
+
+                <MenuItem Header="Connect All" Command="{Binding ConnectAllCommand}"/>
+
                 <MenuItem Header="Connect">
                     <MenuItem.ItemsSource>
                         <CompositeCollection>
-                            <MenuItem Header="All" Command="{Binding Path=DataContext.ConnectAllCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
-                            <Separator/>
                             <CollectionContainer Collection="{Binding Source={StaticResource ServersViewSource}}"/>
                         </CompositeCollection>
                     </MenuItem.ItemsSource>
@@ -351,8 +364,10 @@
                     Background="{DynamicResource BgSecondaryBrush}"
                     BorderThickness="0"
                     Padding="0"
+                    behaviors:SelectNewTabBehavior.EnableAutoSelect="True"
                     ItemTemplate="{StaticResource ServerHeaderTemplate}"
-                    ContentTemplate="{StaticResource ServerContentTemplate}"/>
+                    ContentTemplate="{StaticResource ServerContentTemplate}">
+        </TabControl>
 
         <!-- Add Server Panel -->
         <Grid Grid.Row="0" Grid.RowSpan="2"
@@ -400,11 +415,49 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
                         <Button Content="Cancel"
                                 Command="{Binding CancelAddServerCommand}"
+                                IsCancel="True"
                                 Margin="0,0,0,8"
                                 MinWidth="80"/>
 
                         <Button Content="Add Server"
                                 Command="{Binding ConfirmAddServerCommand}"
+                                Background="{DynamicResource AccentBrush}"
+                                Foreground="{DynamicResource BgPrimaryBrush}"
+                                IsDefault="True"
+                                Margin="3,0,0,8"
+                                MinWidth="80"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+        
+        <!-- Delete Server Confirmation Panel -->
+        <Grid Grid.Column="0" Grid.RowSpan="2"
+              Background="#B0000000"
+              Visibility="{Binding IsConfirmDeleteOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="380" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="{DynamicResource BgSecondaryBrush}"
+                    BorderBrush="{DynamicResource AccentBrush}"
+                    BorderThickness="1" Padding="15" CornerRadius="3">
+                <StackPanel>
+                    <TextBlock Text="Confirm Server Deletion" FontSize="14" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+
+                    <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,0,20">
+                        <Run Text="Are you sure you wan to delete server "/>
+                        <Run Text="{Binding ServerToDelete.ServerAddress}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <Run Text=" from server list?"/>
+                    </TextBlock>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancel"
+                                Command="{Binding CancelDeleteServerCommand}"
+                                IsCancel="True"
+                                Margin="0,0,0,8"
+                                MinWidth="80"/>
+
+                        <Button Content="Delete"
+                                Command="{Binding ConfirmDeleteServerCommand}"
                                 Background="{DynamicResource AccentBrush}"
                                 Foreground="{DynamicResource BgPrimaryBrush}"
                                 IsDefault="True"

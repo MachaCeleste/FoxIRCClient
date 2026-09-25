@@ -13,6 +13,29 @@ public class ChannelViewModel : ViewModelBase
     public ObservableCollection<ChatMessageViewModel> Messages { get; } = [];
     public ObservableCollection<UserViewModel> Users { get; } = [];
 
+    private bool _isSelected;
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            if (_isSelected != value)
+            {
+                _isSelected = value;
+                OnPropertyChanged(nameof(IsSelected));
+                if (_isSelected)
+                    HasUnread = false;
+            }
+        }
+    }
+
+    private bool _hasUnread;
+    public bool HasUnread
+    {
+        get => _hasUnread;
+        set => SetProperty(ref _hasUnread, value);
+    }
+
     private string _inputText = string.Empty;
     public string InputText
     {
@@ -50,7 +73,12 @@ public class ChannelViewModel : ViewModelBase
                 return;
             }
 
-            _parentServer.Client.SendMessageAsync(ChannelId, text);
+            if (text.IndexOf('\n') == -1)
+                _parentServer.Client.SendMessageAsync(ChannelId, text);
+            else
+                foreach (var line in text.Split('\n'))
+                    _parentServer.Client.SendMessageAsync(ChannelId, line);
+
             AddMessage(_parentServer.Nick, text);
         }
         else
@@ -65,11 +93,13 @@ public class ChannelViewModel : ViewModelBase
         Application.Current.Dispatcher.Invoke(() => Users.Remove(user));
     public UserViewModel? GetUserByNick(string nick) =>
         Users.FirstOrDefault(x => x.Nick.Equals(nick, StringComparison.OrdinalIgnoreCase));
-    public void ClearUsers() =>
-        Application.Current.Dispatcher.Invoke(() => Users.Clear);
 
-    public void AddMessage(string author, string message) =>
+    public void AddMessage(string author, string message)
+    {
         Application.Current.Dispatcher.Invoke(() => Messages.Add(new ChatMessageViewModel(DateTime.Now, author, message)));
+        if (!IsSelected)
+            HasUnread = true;
+    }
     public void ClearMessages() =>
-        Application.Current.Dispatcher.Invoke(() => Messages.Clear);
+        Application.Current.Dispatcher.Invoke(() => Messages.Clear());
 }

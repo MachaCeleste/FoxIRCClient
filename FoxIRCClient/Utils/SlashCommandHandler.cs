@@ -41,6 +41,12 @@ public static class SlashCommandHandler
 
         switch (cmd)
         {
+            case "DISCONNECT":
+            case "DC":
+                if (!server.Client.IsConnected) return;
+                await server.DisconnectNetworkAsync();
+                break;
+
             case "JOIN":
                 if (!string.IsNullOrEmpty(args))
                     await client.JoinChannelAsync(args);

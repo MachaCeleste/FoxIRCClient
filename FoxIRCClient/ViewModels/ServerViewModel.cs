@@ -1,6 +1,7 @@
 ﻿using FoxIrc;
 using FoxIRCClient.Utils;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Input;
 
@@ -17,6 +18,34 @@ public class ServerViewModel : ViewModelBase
 
     public IrcClient Client { get; private set; }
     public ObservableCollection<ChannelViewModel> Channels { get; } = [];
+
+    private bool _hasUnread;
+    public bool HasUnread
+    {
+        get => _hasUnread;
+        set => SetProperty(ref _hasUnread, value);
+    }
+
+    private ChannelViewModel? _selectedChannel;
+    public ChannelViewModel? SelectedChannel
+    {
+        get => _selectedChannel;
+        set
+        {
+            if (_selectedChannel != value)
+            {
+                if (_selectedChannel != null)
+                    _selectedChannel.IsSelected = false;
+                _selectedChannel = value;
+                OnPropertyChanged(nameof(SelectedChannel));
+                if (_selectedChannel != null)
+                {
+                    _selectedChannel.IsSelected = true;
+                    _selectedChannel.HasUnread = false;
+                }
+            }
+        }
+    }
 
     public ICommand ConnectCommand { get; }
     public ICommand DisconnectCommand { get; }
@@ -39,8 +68,32 @@ public class ServerViewModel : ViewModelBase
         ConnectCommand = new RelayCommand(async () => await ConnectNetworkAsync(), () => !Client.IsConnected);
         DisconnectCommand = new RelayCommand(async () => await DisconnectNetworkAsync(), () => Client.IsConnected);
 
+        Channels.CollectionChanged += Channels_CollectionChanged;
+
         GetOrCreateChannel("System");
     }
+
+    private void Channels_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems != null)
+            foreach (ChannelViewModel channel in e.NewItems)
+                channel.PropertyChanged += Channel_PropertyChanged;
+
+        if (e.OldItems != null)
+            foreach (ChannelViewModel channel in e.OldItems)
+                channel.PropertyChanged -= Channel_PropertyChanged;
+
+        UpdateUnreadStatus();
+    }
+
+    private void Channel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ChannelViewModel.HasUnread))
+            UpdateUnreadStatus();
+    }
+
+    private void UpdateUnreadStatus() =>
+        HasUnread = Channels.Any(x => x.HasUnread);
 
     public async Task ConnectNetworkAsync()
     {

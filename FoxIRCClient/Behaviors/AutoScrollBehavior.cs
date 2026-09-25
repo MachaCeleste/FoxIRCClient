@@ -1,10 +1,11 @@
 ﻿using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace FoxIRCClient.Behaviors;
 
-public static class AutoScrollBehavior // TODO system not remembering position on tabs that arent focused
+public static class AutoScrollBehavior
 {
     public static readonly DependencyProperty AutoScrollProperty =
         DependencyProperty.RegisterAttached(
@@ -18,44 +19,41 @@ public static class AutoScrollBehavior // TODO system not remembering position o
 
     private static void OnAutoScrollChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is ListView listView)
-        {
-            if ((bool)e.NewValue)
-            {
-                listView.Loaded += ListView_Loaded;
-                listView.Unloaded += ListView_Unloaded;
-            }
-            else
-            {
-                listView.Loaded -= ListView_Loaded;
-                listView.Unloaded -= ListView_Unloaded;
-            }
-        }
+        if (d is ListView listView && (bool)e.NewValue)
+            listView.Loaded += ListView_Loaded;
     }
 
     private static void ListView_Loaded(object sender, RoutedEventArgs e)
     {
-        if (sender is ListView listView && listView.ItemsSource is INotifyCollectionChanged notifyCollection)
+        if (sender is ListView listView && listView.Items is INotifyCollectionChanged items)
         {
-            notifyCollection.CollectionChanged += (sender, args) =>
-            {
-                if (args.Action == NotifyCollectionChangedAction.Add && listView.Items.Count > 0)
-                    listView.Dispatcher.InvokeAsync(() =>
-                    {
-                        int count = listView.Items.Count;
-                        if (count > 0)
-                        {
-                            var lastItem = listView.Items[count - 1];
-                            listView.ScrollIntoView(lastItem);
-                        }
-                    });
-            };
+            NotifyCollectionChangedEventHandler handler = (s, args) => ScrollToBottom(listView);
+
+            items.CollectionChanged += handler;
+            listView.Unloaded += (s, args) => items.CollectionChanged -= handler;
+
+            ScrollToBottom(listView);
         }
     }
 
-    private static void ListView_Unloaded(object sender, RoutedEventArgs e)
+    private static void ScrollToBottom(ListView listView)
     {
-        if (sender is ListView listView && listView.ItemsSource is INotifyCollectionChanged notifyCollection)
-            notifyCollection.CollectionChanged -= (s, args) => { };
+        if (listView.ItemsSource == null || listView.Items.Count == 0) return;
+
+            listView.Dispatcher.BeginInvoke(DispatcherPriority.Background, () =>
+            {
+                try
+                {
+                    int count = listView.Items.Count;
+                    if (count > 0)
+                    {
+                        var listItem = listView.Items[count - 1];
+
+                        if (listItem != null)
+                            listView.ScrollIntoView(listItem);
+                    }
+                }
+                catch (InvalidOperationException) { }
+            });
     }
 }
