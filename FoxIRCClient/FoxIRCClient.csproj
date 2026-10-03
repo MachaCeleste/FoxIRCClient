@@ -8,7 +8,7 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Fox.ico</ApplicationIcon>
     <Title>Fox IRC Client</Title>
-    <Version>1.0.0</Version>
+    <Version>1.0.4</Version>
     <Authors>Macha Celeste</Authors>
     <Company>Celestial Corp</Company>
   </PropertyGroup>

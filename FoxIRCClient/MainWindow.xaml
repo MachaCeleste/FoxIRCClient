@@ -190,7 +190,7 @@
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Chat Group -->
@@ -214,8 +214,6 @@
                                             <TextBlock Text="{Binding Timestamp, StringFormat='[{0:HH:mm}]'}"
                                                        Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,5,0"/>
 
-                                            <!-- TODO Make context menu for chat messages for copy to clipboard -->
-
                                             <Border CornerRadius="5"
                                                     Background="{DynamicResource AccentBrush}">
                                                 <TextBlock Text="{Binding Author, StringFormat='&lt;{0}&gt;'}"
@@ -224,9 +222,12 @@
                                             </Border>
                                         </StackPanel>
 
-                                        <TextBlock Text="{Binding Content}"
-                                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                                   TextWrapping="Wrap"/>
+                                        <TextBox Text="{Binding Content, Mode=OneWay}"
+                                                 IsReadOnly="True" TextWrapping="Wrap"
+                                                 BorderThickness="0" Background="Transparent"
+                                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                                 SelectionBrush="{DynamicResource TextMutedBrush}"
+                                                 Cursor="IBeam" Margin="3,5,0,0"/>
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>
@@ -238,7 +239,8 @@
                 <GroupBox Header="Users" Grid.RowSpan="2" Grid.Column="1"
                           Foreground="{DynamicResource TextPrimaryBrush}"
                           BorderBrush="{DynamicResource AccentBrush}"
-                          Margin="1,0,0,0">
+                          Visibility="{Binding IsChannel, Converter={StaticResource BoolToVis}}"
+                          Width="200" Margin="1,0,0,0">
                     <ListView ItemsSource="{Binding Users}"
                               Background="{DynamicResource BgPrimaryBrush}"
                               Foreground="{DynamicResource TextPrimaryBrush}"

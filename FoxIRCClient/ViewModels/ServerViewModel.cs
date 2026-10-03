@@ -1,9 +1,9 @@
-﻿using FoxIrc;
-using FoxIRCClient.Utils;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Input;
+using FoxIrc;
+using FoxIRCClient.Utils;
 
 namespace FoxIRCClient.ViewModels;
 

@@ -85,8 +85,8 @@ public class DataManager
 
     public static string GetFilePath()
     {
-        FileVersionInfo fileInfo = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
-        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), fileInfo.CompanyName, fileInfo.ProductName);
+        FileVersionInfo fileInfo = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly()!.Location);
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), fileInfo.CompanyName!, fileInfo.ProductName!);
     }
 
     private static void SetupConfigDir(string filePath)

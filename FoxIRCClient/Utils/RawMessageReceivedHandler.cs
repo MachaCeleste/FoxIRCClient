@@ -144,7 +144,7 @@ public static class RawMessageReceivedHandler
                     {
                         foreach (var channel in server.Channels)
                         {
-                            var userNode = channel.Users.FirstOrDefault(x => x.Username.Equals(senderNick, StringComparison.OrdinalIgnoreCase));
+                            var userNode = channel.Users.FirstOrDefault(x => x.Nick.Equals(senderNick, StringComparison.OrdinalIgnoreCase));
                             if (userNode != null)
                             {
                                 channel.AddMessage("SYSTEM", $"{senderNick} is now known as {newNick}");

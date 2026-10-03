@@ -1,7 +1,7 @@
-﻿using FoxIRCClient.Utils;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
+using FoxIRCClient.Utils;
 
 namespace FoxIRCClient.ViewModels;
 
@@ -42,6 +42,8 @@ public class ChannelViewModel : ViewModelBase
         get => _inputText;
         set => SetProperty(ref _inputText, value);
     }
+
+    public bool IsChannel => ChannelId.StartsWith('#');
 
     public ICommand SendMessageCommand { get; }
 
